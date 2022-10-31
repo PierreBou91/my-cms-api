@@ -51,7 +51,7 @@ app.post("/login", async (req, res) => {
   if (email === "123" && password === "123") {
     return res
       .cookie("token", await createJWT(), {
-        httpOnly: true,
+        // httpOnly: true,
         secure: true,
         sameSite: "none",
         maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
