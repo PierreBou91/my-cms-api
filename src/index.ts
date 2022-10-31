@@ -1,66 +1,29 @@
-import cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv';
+import cookieParser from "cookie-parser";
+import * as dotenv from "dotenv";
 import express from "express";
-import * as jose from 'jose';
-dotenv.config()
+import { authorization } from "./middlewares/auth";
+import { getUserById } from "./queries/queries";
+import { createJWT } from "./utils/jwt-handler";
+import { unless } from "./utils/mid-wrapper";
+// import cors
+import cors from "cors";
+
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const secret = new TextEncoder().encode(process.env.SECRET);
 
 app.use(cookieParser()); // necessary for cookie manipulation
 app.use(express.json()); // necessary for body destructuring
-
-var unless = function(path : string, middleware : Function) {
-  return function(req:express.Request, res:express.Response, next:Function) {
-      if (path === req.path) {
-          return next();
-      } else {
-          return middleware(req, res, next);
-      }
-  };
-};
-
-const createJWT = async (user?: string) => {
-    const payload = {
-        "id": "123", // IMPORTANT/TODO: This has to be fetched from database
-    };
-    const jwt = await new jose.SignJWT(payload)
-      .setProtectedHeader({ alg: 'HS512', typ: 'JWT' })
-      .setIssuedAt()
-      .setIssuer('https://ourdomain.com')
-      .setAudience(user || "")
-      .setExpirationTime('2h') // TODO make it match with cookie expiration
-      .sign(secret);
-
-    return jwt;
-  }
-
-const authorization = async (req: express.Request, res: express.Response, next: Function) => {
-  const token = req.cookies.token;
-  if (!token) {
-    return res.status(401).json({ message: "Missing JWT." });
-  }
-  try {
-    const data = await jose.jwtVerify(token, secret);
-    req.body.id = data.payload.id;
-    return next();
-  } catch (error: any) {
-    return res.status(401).json({ message: "Error while verifying JWT", error: error.code });
-  }
-}
+app.use(cors()); // necessary for cross-origin requests
 
 app.use(unless("/login", authorization));
 
-app.get("/me", (req, res) => {
-  return res.status(200).json({ message: "Authenticated call to '/'", id: req.body.id });
-});
-
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  if (email === "123" && password === "123") {
-    return res
+///////////////////////
+/////// TO DELETE /////
+///////////////////////
+app.get("/login", async (req, res) => {
+  return res
     .cookie("token", await createJWT(), {
       httpOnly: true,
       secure: true,
@@ -69,16 +32,42 @@ app.post("/login", async (req, res) => {
     })
     .status(200)
     .json({ message: "Logged in successfully.", email: req.body.email });
+});
+///////////////////////
+///// UNTIL HERE //////
+///////////////////////
+
+app.get("/me", async (req, res) => {
+  const user = await getUserById(req.body.id);
+  console.log(user);
+  return res
+    .status(200)
+    .json({ message: "Authenticated call to '/'", id: req.body.id });
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (email === "123" && password === "123") {
+    return res
+      .cookie("token", await createJWT(), {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
+      })
+      .status(200)
+      .json({ message: "Logged in successfully.", email: req.body.email });
   }
-  
+
   return res.status(401).json({ message: "Invalid credentials." });
 });
 
 app.get("/logout", async (req, res) => {
   return res
-  .clearCookie("token")
-  .status(200)
-  .json({ message: "Logged out successfully." });
+    .clearCookie("token")
+    .status(200)
+    .json({ message: "Logged out successfully." });
 });
 
 // app.get("/register", async (req, res) => {
