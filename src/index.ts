@@ -24,6 +24,7 @@ app.use(unless("/login", authorization));
 ///////////////////////
 app.get("/login", async (req, res) => {
   return res
+    .header("Access-Control-Expose-Headers", "Set-Cookie")
     .cookie("token", await createJWT(), {
       httpOnly: true,
       secure: true,
