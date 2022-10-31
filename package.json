@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "start": "tsc && node dist/index.js",
-    "build": "cd prisma && prisma migrate dev && tsc",
+    "build": "tsc",
     "migrate": "cd prisma && prisma migrate dev",
     "generate": "cd prisma && prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1"
