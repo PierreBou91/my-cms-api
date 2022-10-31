@@ -23,7 +23,7 @@ var unless = function(path : string, middleware : Function) {
 
 const createJWT = async (user?: string) => {
     const payload = {
-        "email": "123", // IMPORTANT/TODO: This has to be fetched from database
+        "id": "123", // IMPORTANT/TODO: This has to be fetched from database
     };
     const jwt = await new jose.SignJWT(payload)
       .setProtectedHeader({ alg: 'HS512', typ: 'JWT' })
@@ -43,7 +43,7 @@ const authorization = async (req: express.Request, res: express.Response, next: 
   }
   try {
     const data = await jose.jwtVerify(token, secret);
-    req.body.email = data.payload.email;
+    req.body.id = data.payload.id;
     return next();
   } catch (error: any) {
     return res.status(401).json({ message: "Error while verifying JWT", error: error.code });
@@ -53,7 +53,7 @@ const authorization = async (req: express.Request, res: express.Response, next: 
 app.use(unless("/login", authorization));
 
 app.get("/me", (req, res) => {
-  return res.status(200).json({ message: "Authenticated call to '/'", email: req.body.email });
+  return res.status(200).json({ message: "Authenticated call to '/'", id: req.body.id });
 });
 
 app.post("/login", async (req, res) => {
