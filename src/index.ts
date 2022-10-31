@@ -52,7 +52,7 @@ app.post("/login", async (req, res) => {
     return res
       .cookie("token", await createJWT(), {
         httpOnly: true,
-        // secure: true,
+        secure: true,
         sameSite: "none",
         maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
       })
