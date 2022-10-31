@@ -8,11 +8,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 const secret = new TextEncoder().encode(process.env.SECRET);
 
-const exJWT = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1cm46ZXhhbXBsZTpjbGFpbSI6dHJ1ZSwiaWF0IjoxNjY3MjE5NzM1LCJpc3MiOiJodHRwczovL291cmRvbWFpbi5jb20iLCJhdWQiOiIiLCJleHAiOjE2NjcyMjY5MzV9.1OVFJmo4hjwejFal6kppkJvEW5NS2kmdZ9h8cpMRJWRQ4dT5VFYea_7TrX5Id05dyHasSE9Aj0XOm1QO8jJ5bg"
-
-const expJWT = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1cm46ZXhhbXBsZTpjbGFpbSI6dHJ1ZSwiaWF0IjoxNjY3MjIwMzcxLCJpc3MiOiJodHRwczovL291cmRvbWFpbi5jb20iLCJhdWQiOiIiLCJleHAiOjE2NjcyMjAzNzJ9.x0azVQqwBHjdEHZgZYw5GGB7Yf2a56mjxBrM8w45uBgUgQ104z3TQfNS0J4iJlFyXHoTS5s1FoFSlAaVyx1kuA"
-
-const unsignedJWT = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1cm46ZXhhbXBsZTpjbGFpbSI6dHJ1ZSwiaWF0IjoxNjY3MjE5NzM1LCJpc3MiOiJodHRwczovL291cmRvbWFpbi5jb20iLCJhdWQiOiIiLCJleHAiOjE2NjcyMjY5MzV9.1OVFJmo4hjwejFal6kppkJvEW5NS2kmdZ9h8cpMRJWRQ4dT5VFYea_7TrX5Id05dyHasSE9Aj0XOm1QO8jJ5bgeee"
+app.use(cookieParser()); // necessary for cookie manipulation
+app.use(express.json()); // necessary for body destructuring
 
 var unless = function(path : string, middleware : Function) {
   return function(req:express.Request, res:express.Response, next:Function) {
@@ -33,7 +30,7 @@ const createJWT = async (user?: string) => {
       .setIssuedAt()
       .setIssuer('https://ourdomain.com')
       .setAudience(user || "")
-      .setExpirationTime('2h')
+      .setExpirationTime('2h') // TODO make it match with cookie expiration
       .sign(secret);
 
     return jwt;
@@ -42,31 +39,38 @@ const createJWT = async (user?: string) => {
 const authorization = async (req: express.Request, res: express.Response, next: Function) => {
   const token = req.cookies.token;
   if (!token) {
-    return res.status(401).send("Unauthorized");
+    return res.status(401).json({ message: "Missing JWT." });
   }
   try {
     const data = await jose.jwtVerify(token, secret);
     // here can be extracted some info from token and stored in req
     return next();
   } catch (error: any) {
-    return res.status(401).send(error.code);
+    return res.status(401).json({ message: "Error while verifying JWT", error: error.code });
   }
 }
 
-app.use(cookieParser());
 app.use(unless("/login", authorization));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  return res.status(200).json({ message: "Authenticated call to '/'" });
 });
 
-app.get("/login", async (req, res) => {
-  return res
-  .cookie("token", await createJWT(), {
-    httpOnly: true,
-  })
-  .status(200)
-  .json({ message: "Logged in successfully 😊 👌" });
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (email === "123" && password === "123") {
+    return res
+    .cookie("token", await createJWT(), {
+      httpOnly: true,
+      secure: true,
+      maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
+    })
+    .status(200)
+    .json({ message: "Logged in successfully." });
+  }
+  
+  return res.status(401).json({ message: "Invalid credentials." });
 });
 
 // app.get("/register", async (req, res) => {
@@ -78,7 +82,7 @@ app.get("/logout", async (req, res) => {
   return res
   .clearCookie("token")
   .status(200)
-  .json({ message: "Logged out successfully 😊 👌" });
+  .json({ message: "Logged out successfully." });
 });
 
 app.listen(3000, () => {
