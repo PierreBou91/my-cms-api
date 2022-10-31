@@ -8,6 +8,5 @@
       "esModuleInterop": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
-      "typeRoots" : ["./src/types", "./node_modules/@types"] // necessary for typescript to find the types extended from other libs
     }
   }

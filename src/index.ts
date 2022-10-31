@@ -36,14 +36,13 @@ const createJWT = async (user?: string) => {
     return jwt;
   }
 
-const authorization = async (req: express.Request, res: express.Response, next: Function) => { // req is any because of req.email below
+const authorization = async (req: express.Request, res: express.Response, next: Function) => {
   const token = req.cookies.token;
   if (!token) {
     return res.status(401).json({ message: "Missing JWT." });
   }
   try {
     const data = await jose.jwtVerify(token, secret);
-    // here can be extracted some info from token and stored in req
     req.body.email = data.payload.email;
     return next();
   } catch (error: any) {
@@ -57,7 +56,7 @@ app.get("/me", (req, res) => {
   return res.status(200).json({ message: "Authenticated call to '/'", email: req.body.email });
 });
 
-app.post("/login", async (req: any, res) => { // req is any because of req.body below
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (email === "123" && password === "123") {
@@ -75,17 +74,17 @@ app.post("/login", async (req: any, res) => { // req is any because of req.body 
   return res.status(401).json({ message: "Invalid credentials." });
 });
 
-// app.get("/register", async (req, res) => {
-//   res.cookie("token", await createJWT());
-//   res.send("Hello register!");
-// });
-
 app.get("/logout", async (req, res) => {
   return res
   .clearCookie("token")
   .status(200)
   .json({ message: "Logged out successfully." });
 });
+
+// app.get("/register", async (req, res) => {
+//   res.cookie("token", await createJWT());
+//   res.send("Hello register!");
+// });
 
 app.listen(3000, () => {
   console.log(`Server is running on port ${port}`);
