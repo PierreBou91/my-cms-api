@@ -23,7 +23,7 @@ var unless = function(path : string, middleware : Function) {
 
 const createJWT = async (user?: string) => {
     const payload = {
-        "urn:example:claim": true,
+        "email": "123", // IMPORTANT/TODO: This has to be fetched from database
     };
     const jwt = await new jose.SignJWT(payload)
       .setProtectedHeader({ alg: 'HS512', typ: 'JWT' })
@@ -36,7 +36,7 @@ const createJWT = async (user?: string) => {
     return jwt;
   }
 
-const authorization = async (req: express.Request, res: express.Response, next: Function) => {
+const authorization = async (req: express.Request, res: express.Response, next: Function) => { // req is any because of req.email below
   const token = req.cookies.token;
   if (!token) {
     return res.status(401).json({ message: "Missing JWT." });
@@ -44,6 +44,7 @@ const authorization = async (req: express.Request, res: express.Response, next: 
   try {
     const data = await jose.jwtVerify(token, secret);
     // here can be extracted some info from token and stored in req
+    req.body.email = data.payload.email;
     return next();
   } catch (error: any) {
     return res.status(401).json({ message: "Error while verifying JWT", error: error.code });
@@ -52,11 +53,11 @@ const authorization = async (req: express.Request, res: express.Response, next: 
 
 app.use(unless("/login", authorization));
 
-app.get("/", (req, res) => {
-  return res.status(200).json({ message: "Authenticated call to '/'" });
+app.get("/me", (req, res) => {
+  return res.status(200).json({ message: "Authenticated call to '/'", email: req.body.email });
 });
 
-app.post("/login", async (req, res) => {
+app.post("/login", async (req: any, res) => { // req is any because of req.body below
   const { email, password } = req.body;
 
   if (email === "123" && password === "123") {
@@ -64,10 +65,11 @@ app.post("/login", async (req, res) => {
     .cookie("token", await createJWT(), {
       httpOnly: true,
       secure: true,
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
     })
     .status(200)
-    .json({ message: "Logged in successfully." });
+    .json({ message: "Logged in successfully.", email: req.body.email });
   }
   
   return res.status(401).json({ message: "Invalid credentials." });
