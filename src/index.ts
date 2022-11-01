@@ -51,9 +51,9 @@ app.post(
   cors({
     credentials: true,
     origin: [
-      "https://my-cms-plum.vercel.app/",
-      "http://localhost/",
-      "https://cms-api.pbou.dev/",
+      "https://my-cms-plum.vercel.app",
+      "http://localhost",
+      "https://cms-api.pbou.dev",
     ],
   }),
   async (req, res) => {
