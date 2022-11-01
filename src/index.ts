@@ -24,20 +24,6 @@ app.use(
       "http://localhost:5173",
       "https://cms-api.pbou.dev",
     ],
-    // allowedHeaders: [
-    //   "Content-Type",
-    //   "Authorization",
-    //   "Set-Cookie",
-    //   "access-control-allow-credentials",
-    //   "credentials",
-    // ],
-    exposedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "Set-Cookie",
-      "access-control-allow-credentials",
-      "credentials",
-    ],
   })
 ); // necessary for cross-origin requests
 
@@ -74,7 +60,6 @@ app.post("/login", async (req, res) => {
 
   if (email === "123" && password === "123") {
     return res
-      .header("Access-Control-Expose-Headers", "Set-Cookie")
       .cookie("token", await createJWT(), {
         httpOnly: true,
         secure: true,
