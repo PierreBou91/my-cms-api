@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 
 app.use(cookieParser()); // necessary for cookie manipulation
 app.use(express.json()); // necessary for body destructuring
-app.use(cors()); // necessary for cross-origin requests
+// app.use(cors()); // necessary for cross-origin requests
 
 app.use(unless("/login", authorization));
 
@@ -38,7 +38,7 @@ app.get("/login", async (req, res) => {
 ///// UNTIL HERE //////
 ///////////////////////
 
-app.get("/me", async (req, res) => {
+app.get("/me", cors(), async (req, res) => {
   const user = await getUserById(req.body.id);
   console.log(user);
   return res
@@ -76,7 +76,7 @@ app.post(
   }
 );
 
-app.get("/logout", async (req, res) => {
+app.get("/logout", cors(), async (req, res) => {
   return res
     .clearCookie("token")
     .status(200)
