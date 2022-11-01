@@ -66,6 +66,7 @@ app.post("/login", async (req, res) => {
         secure: true,
         sameSite: "none",
         maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
+        domain: "cms-api.pbou.dev",
       })
       .status(200)
       .json({ message: "Logged in successfully.", email: req.body.email });
