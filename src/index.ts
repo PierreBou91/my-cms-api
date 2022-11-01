@@ -21,6 +21,7 @@ app.use(
     origin: [
       "https://my-cms-plum.vercel.app",
       "http://localhost",
+      "http://localhost:5173",
       "https://cms-api.pbou.dev",
     ],
     // allowedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
