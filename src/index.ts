@@ -23,7 +23,8 @@ app.use(
       "http://localhost",
       "https://cms-api.pbou.dev",
     ],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
+    exposedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
   })
 ); // necessary for cross-origin requests
 
@@ -34,7 +35,6 @@ app.use(unless("/login", authorization));
 ///////////////////////
 app.get("/login", async (req, res) => {
   return res
-    .header("Access-Control-Expose-Headers", "Set-Cookie")
     .cookie("token", await createJWT(), {
       httpOnly: true,
       secure: true,
