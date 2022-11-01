@@ -15,7 +15,11 @@ const port = process.env.PORT || 3000;
 
 app.use(cookieParser()); // necessary for cookie manipulation
 app.use(express.json()); // necessary for body destructuring
-app.use(cors({ credentials: true, origin: "*" })); // necessary for cross-origin requests
+app.use(
+  cors({
+    origin: "*",
+  })
+); // necessary for cross-origin requests
 
 app.use(unless("/login", authorization));
 
@@ -46,24 +50,35 @@ app.get("/me", async (req, res) => {
     .json({ message: "Authenticated call to '/'", id: req.body.id });
 });
 
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+app.post(
+  "/login",
+  cors({
+    credentials: true,
+    origin: [
+      "https://my-cms-plum.vercel.app/",
+      "http://localhost/",
+      "https://cms-api.pbou.dev/",
+    ],
+  }),
+  async (req, res) => {
+    const { email, password } = req.body;
 
-  if (email === "123" && password === "123") {
-    return res
-      .header("Access-Control-Expose-Headers", "Set-Cookie")
-      .cookie("token", await createJWT(), {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
-      })
-      .status(200)
-      .json({ message: "Logged in successfully.", email: req.body.email });
+    if (email === "123" && password === "123") {
+      return res
+        .header("Access-Control-Expose-Headers", "Set-Cookie")
+        .cookie("token", await createJWT(), {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          maxAge: 1000 * 60 * 60 * 2, // TODO make it match with jwt expiration
+        })
+        .status(200)
+        .json({ message: "Logged in successfully.", email: req.body.email });
+    }
+
+    return res.status(401).json({ message: "Invalid credentials." });
   }
-
-  return res.status(401).json({ message: "Invalid credentials." });
-});
+);
 
 app.get("/logout", async (req, res) => {
   return res
