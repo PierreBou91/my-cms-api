@@ -23,7 +23,7 @@ app.use(
       "http://localhost",
       "https://cms-api.pbou.dev",
     ],
-    allowedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
+    // allowedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
     exposedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
   })
 ); // necessary for cross-origin requests
